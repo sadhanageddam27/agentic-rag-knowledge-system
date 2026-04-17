@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic RAG Knowledge System | Sadhana Geddam</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1117;--bg2:#161b27;--bg3:#1c2333;
+  --border:rgba(255,255,255,0.07);--b2:rgba(255,255,255,0.12);
+  --violet:#818cf8;--teal:#2dd4bf;--green:#34d399;--amber:#fbbf24;--pink:#f472b6;
+  --text:#cbd5e1;--muted:#475569;--head:#f8fafc;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.8;overflow-x:hidden}
+::selection{background:rgba(129,140,248,0.2);color:var(--violet)}
+body::before{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 60% 50% at 10% 30%,rgba(129,140,248,0.07),transparent),
+             radial-gradient(ellipse 40% 40% at 90% 70%,rgba(45,212,191,0.05),transparent);
+  pointer-events:none;z-index:0}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:900;height:54px;display:flex;align-items:center;padding:0 2rem;gap:2rem;background:rgba(15,17,23,0.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border)}
+.brand{font-size:13px;font-weight:600;color:var(--head);margin-right:auto;font-family:var(--mono);letter-spacing:0.02em}
+nav a{color:var(--muted);text-decoration:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;transition:color .2s}
+nav a:hover{color:var(--violet)}
+
+/* HERO */
+.hero{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:6rem 2rem 3rem}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--violet);border:1px solid rgba(129,140,248,0.25);background:rgba(129,140,248,0.07);padding:4px 14px;border-radius:99px;margin-bottom:1.75rem}
+.badge-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.2}}
+h1{font-size:clamp(2rem,4.5vw,3.8rem);font-weight:600;color:var(--head);line-height:1.1;margin-bottom:1.25rem;letter-spacing:-0.025em}
+h1 .hl{color:var(--violet)}
+.hero-desc{color:#64748b;font-size:15px;max-width:580px;line-height:1.75;margin-bottom:2.5rem;font-weight:300}
+.stat-strip{display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;width:fit-content}
+.ss{padding:.9rem 1.4rem;border-right:1px solid var(--border);background:var(--bg2);min-width:110px}
+.ss:last-child{border-right:none}
+.sv{font-family:var(--mono);font-size:1.2rem;font-weight:600;display:block;line-height:1;margin-bottom:4px}
+.sl{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.07em;text-transform:uppercase}
+
+/* MAIN */
+main{max-width:980px;margin:0 auto;padding:3rem 2rem 6rem;position:relative;z-index:1}
+section{margin-bottom:5rem}
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:2rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.sn{font-family:var(--mono);font-size:9px;color:var(--violet);letter-spacing:0.15em;text-transform:uppercase;background:rgba(129,140,248,0.07);border:1px solid rgba(129,140,248,0.2);padding:3px 8px;border-radius:2px}
+h2{font-size:1.2rem;font-weight:600;color:var(--head);letter-spacing:-0.015em}
+h3{font-family:var(--mono);font-size:10px;color:var(--violet);letter-spacing:0.12em;text-transform:uppercase;margin:2rem 0 .75rem}
+p{color:#64748b;font-weight:300;margin-bottom:1rem}
+
+/* WHAT MAKES IT AGENTIC */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem}
+.cmp{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem;position:relative;overflow:hidden}
+.cmp.agent{border-color:rgba(129,140,248,0.3)}
+.cmp.agent::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--violet),var(--teal))}
+.cmp-title{font-family:var(--mono);font-size:11px;font-weight:500;margin-bottom:.75rem;display:flex;align-items:center;gap:8px}
+.cmp-item{font-size:13px;color:#64748b;padding:4px 0;display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.cmp-item:last-child{border-bottom:none}
+.cmp-item .ic{flex-shrink:0;width:16px}
+
+/* PIPELINE */
+.pipe{display:flex;flex-direction:column;gap:1px;background:var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.5rem}
+.pr{background:var(--bg2);padding:1rem 1.25rem;display:grid;grid-template-columns:40px 1fr auto;gap:1rem;align-items:center}
+.pr:hover{background:var(--bg3)}
+.pr-n{font-family:var(--mono);font-size:1.2rem;font-weight:600;color:var(--violet);opacity:0.3}
+.pr-title{font-family:var(--mono);font-size:12px;color:var(--head);font-weight:500;margin-bottom:2px}
+.pr-desc{font-size:13px;color:#64748b}
+.pr-tag{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:2px;white-space:nowrap;border:1px solid rgba(129,140,248,0.2);background:rgba(129,140,248,0.07);color:var(--violet)}
+
+/* CODE */
+.code-block{background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.5rem}
+.cb-bar{padding:.55rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%}
+.cb-label{font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:auto}
+.cb-body{padding:1.1rem 1.25rem;font-family:var(--mono);font-size:12px;line-height:2;overflow-x:auto}
+.ck{color:#f97316}.cs{color:var(--green)}.cf{color:var(--violet)}.cc{color:var(--muted)}.cn{color:var(--pink)}.ca{color:var(--teal)}
+
+/* FILE TREE */
+.tree{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem 1.5rem;font-family:var(--mono);font-size:12px;line-height:2.4;margin-bottom:1.5rem}
+.td{color:#64748b}.tf{color:var(--head)}.tc{color:var(--muted);font-size:11px}.tl{color:var(--violet)}
+
+/* API ENDPOINTS */
+.endpoints{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.ep{display:flex;align-items:flex-start;gap:12px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:.9rem 1.1rem}
+.ep-method{font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 8px;border-radius:3px;min-width:52px;text-align:center;letter-spacing:0.05em}
+.post{background:rgba(52,211,153,0.1);color:var(--green);border:1px solid rgba(52,211,153,0.2)}
+.get{background:rgba(129,140,248,0.1);color:var(--violet);border:1px solid rgba(129,140,248,0.2)}
+.del{background:rgba(244,114,182,0.1);color:var(--pink);border:1px solid rgba(244,114,182,0.2)}
+.ep-path{font-family:var(--mono);font-size:12px;color:var(--head);min-width:200px}
+.ep-desc{font-size:13px;color:#64748b}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden;margin-bottom:2rem;border:1px solid var(--border)}
+.mc{background:var(--bg2);padding:1.2rem;text-align:center}
+.mv{font-family:var(--mono);font-size:1.5rem;font-weight:600;display:block;margin-bottom:4px}
+.ml{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase}
+
+/* TABLE */
+.tw{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:1.5rem}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:.6rem 1rem;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--violet);border-bottom:1px solid var(--border);background:rgba(129,140,248,0.04);font-weight:400}
+td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,0.03);font-family:var(--mono);font-size:12px;color:#94a3b8}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.015)}
+.hi{color:var(--teal)!important}
+
+/* TAGS */
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:1rem 0 1.5rem}
+.tag{font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 10px;border-radius:2px;border:1px solid}
+.tv{color:var(--violet);border-color:rgba(129,140,248,0.2);background:rgba(129,140,248,0.06)}
+.tt{color:var(--teal);border-color:rgba(45,212,191,0.2);background:rgba(45,212,191,0.06)}
+.tg{color:var(--green);border-color:rgba(52,211,153,0.2);background:rgba(52,211,153,0.06)}
+.ta{color:var(--amber);border-color:rgba(251,191,36,0.2);background:rgba(251,191,36,0.06)}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1.25rem 1.5rem;margin-bottom:1rem}
+.card p{margin:0;color:#64748b;font-size:14px}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+
+footer{border-top:1px solid var(--border);padding:2rem;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);position:relative;z-index:1}
+footer a{color:var(--violet);text-decoration:none}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.hero-badge{animation:fadeUp .4s ease both}
+h1{animation:fadeUp .4s .1s ease both}
+.hero-desc{animation:fadeUp .4s .2s ease both}
+.stat-strip{animation:fadeUp .4s .3s ease both}
+
+@media(max-width:680px){
+  .compare,.metrics{grid-template-columns:1fr}
+  .stat-strip{flex-wrap:wrap;width:100%}
+  .ep{flex-direction:column;gap:6px}
+  nav a{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">sadhana_geddam / agentic-rag</span>
+  <a href="#why">why agentic</a>
+  <a href="#pipeline">pipeline</a>
+  <a href="#code">code</a>
+  <a href="#api">api</a>
+  <a href="#setup">setup</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge"><div class="badge-dot"></div>Python · ChromaDB · FastAPI · LLM</div>
+  <h1>Agentic RAG<br><span class="hl">Knowledge System</span></h1>
+  <p class="hero-desc">Agent-driven retrieval pipeline that grounds every LLM response in real documents. For complex multi-hop questions, the agent decomposes, retrieves evidence independently per sub-question, then synthesizes — giving far better results than single-retrieval RAG.</p>
+  <div class="stat-strip">
+    <div class="ss"><span class="sv" style="color:var(--violet)">RAG</span><span class="sl">retrieval core</span></div>
+    <div class="ss"><span class="sv" style="color:var(--teal)">agent</span><span class="sl">multi-step</span></div>
+    <div class="ss"><span class="sv" style="color:var(--green)">REST</span><span class="sl">FastAPI</span></div>
+    <div class="ss"><span class="sv" style="color:var(--amber)">18</span><span class="sl">unit tests</span></div>
+  </div>
+</div>
+
+<main>
+
+<div class="tags">
+  <span class="tag tv">Python</span><span class="tag tv">LLMs</span>
+  <span class="tag tt">ChromaDB</span><span class="tag tt">Vector Search</span>
+  <span class="tag tg">FastAPI</span><span class="tag tg">REST API</span>
+  <span class="tag ta">OpenAI</span><span class="tag ta">Ollama</span>
+  <span class="tag tv">Prompt Engineering</span><span class="tag tt">sentence-transformers</span>
+</div>
+
+<!-- WHY AGENTIC -->
+<section id="why">
+  <div class="sh"><span class="sn">01</span><h2>Why Agentic RAG?</h2></div>
+  <p>Standard RAG does one retrieval and generates an answer. It fails on multi-hop questions that need evidence from multiple sources. The agent classifies complexity first, then decides how to answer.</p>
+  <div class="compare">
+    <div class="cmp">
+      <div class="cmp-title" style="color:#ef4444">❌ Standard RAG</div>
+      <div class="cmp-item"><span class="ic">→</span>Single retrieval per query</div>
+      <div class="cmp-item"><span class="ic">→</span>Fails on multi-hop questions</div>
+      <div class="cmp-item"><span class="ic">→</span>No reasoning about what to retrieve</div>
+      <div class="cmp-item"><span class="ic">→</span>Missing cross-document synthesis</div>
+    </div>
+    <div class="cmp agent">
+      <div class="cmp-title" style="color:var(--violet)">✅ Agentic RAG</div>
+      <div class="cmp-item"><span class="ic" style="color:var(--green)">→</span>Classifies simple vs complex</div>
+      <div class="cmp-item"><span class="ic" style="color:var(--green)">→</span>Decomposes complex questions</div>
+      <div class="cmp-item"><span class="ic" style="color:var(--green)">→</span>Retrieves evidence per sub-question</div>
+      <div class="cmp-item"><span class="ic" style="color:var(--green)">→</span>Synthesizes final grounded answer</div>
+    </div>
+  </div>
+  <div class="metrics">
+    <div class="mc"><span class="mv" style="color:var(--violet)">5</span><span class="ml">pipeline components</span></div>
+    <div class="mc"><span class="mv" style="color:var(--teal)">3</span><span class="ml">agent step types</span></div>
+    <div class="mc"><span class="mv" style="color:var(--green)">7</span><span class="ml">API endpoints</span></div>
+    <div class="mc"><span class="mv" style="color:var(--amber)">18</span><span class="ml">unit tests</span></div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section id="pipeline">
+  <div class="sh"><span class="sn">02</span><h2>System Pipeline</h2></div>
+  <div class="pipe">
+    <div class="pr"><div class="pr-n">01</div><div><div class="pr-title">DocumentLoader</div><div class="pr-desc">Loads .txt, .md, .pdf from files or directories</div></div><span class="pr-tag">loader</span></div>
+    <div class="pr"><div class="pr-n">02</div><div><div class="pr-title">TextChunker</div><div class="pr-desc">Splits into 512-token chunks with 64-token overlap — prevents information loss at boundaries</div></div><span class="pr-tag">chunker</span></div>
+    <div class="pr"><div class="pr-n">03</div><div><div class="pr-title">Embedder</div><div class="pr-desc">sentence-transformers/all-MiniLM-L6-v2 (local, free) or OpenAI text-embedding-ada-002</div></div><span class="pr-tag">embedder</span></div>
+    <div class="pr"><div class="pr-n">04</div><div><div class="pr-title">VectorStore (ChromaDB)</div><div class="pr-desc">Persistent cosine similarity search — stores chunks with embeddings and metadata</div></div><span class="pr-tag">vector store</span></div>
+    <div class="pr"><div class="pr-n">05</div><div><div class="pr-title">AgenticRAG</div><div class="pr-desc">Classify → simple path (single retrieve+generate) or complex path (decompose→retrieve×N→synthesize)</div></div><span class="pr-tag">agent</span></div>
+  </div>
+
+  <h3>Agentic Reasoning Flow</h3>
+  <div class="code-block">
+    <div class="cb-bar"><div class="dot" style="background:#ff5f56"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#27c93f"></div><span class="cb-label">agentic_rag.py</span></div>
+    <div class="cb-body">
+<span class="cc"># Step 1: Classify</span><br>
+complexity = <span class="cf">classify</span>(question) <span class="cc"># "simple" | "complex"</span><br><br>
+<span class="ck">if</span> complexity == <span class="cs">"simple"</span>:<br>
+&nbsp;&nbsp;<span class="cc"># Standard RAG — single retrieval</span><br>
+&nbsp;&nbsp;chunks = vector_store.<span class="cf">search</span>(question, top_k=<span class="cn">5</span>)<br>
+&nbsp;&nbsp;answer = llm.<span class="cf">complete</span>(context=chunks, question=question)<br><br>
+<span class="ck">else</span>:<br>
+&nbsp;&nbsp;<span class="cc"># Step 2: Decompose into sub-questions</span><br>
+&nbsp;&nbsp;sub_questions = <span class="cf">decompose</span>(question) <span class="cc"># LLM returns JSON array</span><br><br>
+&nbsp;&nbsp;<span class="cc"># Step 3: Retrieve per sub-question</span><br>
+&nbsp;&nbsp;evidence = []<br>
+&nbsp;&nbsp;<span class="ck">for</span> sub_q <span class="ck">in</span> sub_questions:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;chunks = vector_store.<span class="cf">search</span>(sub_q, top_k=<span class="cn">3</span>)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;evidence.<span class="cf">append</span>({<span class="cs">"question"</span>: sub_q, <span class="cs">"context"</span>: chunks})<br><br>
+&nbsp;&nbsp;<span class="cc"># Step 4: Synthesize final answer</span><br>
+&nbsp;&nbsp;answer = llm.<span class="cf">complete</span>(evidence=evidence, original=question)
+    </div>
+  </div>
+</section>
+
+<!-- CODE STRUCTURE -->
+<section id="code">
+  <div class="sh"><span class="sn">03</span><h2>Code Structure</h2></div>
+  <div class="tree">
+    <div><span class="tl">agentic-rag-knowledge-system/</span></div>
+    <div>&nbsp;&nbsp;<span class="td">├──</span> <span class="tl">src/</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="td">├──</span> <span class="tf">rag_pipeline.py</span> &nbsp;<span class="tc"># Document, Loader, Chunker, Embedder, VectorStore, RAGPipeline</span></div>
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;<span class="td">└──</span> <span class="tf">agentic_rag.py</span> &nbsp;<span class="tc"># AgentStep, AgentResponse, AgenticRAG</span></div>
+    <div>&nbsp;&nbsp;<span class="td">├──</span> <span class="tf">api.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tc"># FastAPI — /ingest, /query, /agent/query endpoints</span></div>
+    <div>&nbsp;&nbsp;<span class="td">├──</span> <span class="tf">demo.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="tc"># CLI demo with 3 sample docs + example queries</span></div>
+    <div>&nbsp;&nbsp;<span class="td">├──</span> <span class="tf">tests/test_rag.py</span> &nbsp;<span class="tc"># 18 unit tests — all mocked, no API key needed</span></div>
+    <div>&nbsp;&nbsp;<span class="td">├──</span> <span class="tf">requirements.txt</span></div>
+    <div>&nbsp;&nbsp;<span class="td">└──</span> <span class="tf">.env.example</span></div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Class</th><th>File</th><th>Responsibility</th></tr></thead>
+      <tbody>
+        <tr><td>DocumentLoader</td><td>rag_pipeline.py</td><td>Load txt, md, pdf — file or directory</td></tr>
+        <tr><td>TextChunker</td><td>rag_pipeline.py</td><td>Paragraph-aware chunking with overlap</td></tr>
+        <tr><td>Embedder</td><td>rag_pipeline.py</td><td>Local or OpenAI embeddings — swappable</td></tr>
+        <tr><td>VectorStore</td><td>rag_pipeline.py</td><td>ChromaDB wrapper — add, search, clear</td></tr>
+        <tr><td>RAGPipeline</td><td>rag_pipeline.py</td><td>End-to-end ingest + query orchestration</td></tr>
+        <tr><td class="hi">AgenticRAG</td><td>agentic_rag.py</td><td class="hi">Classify → decompose → retrieve → synthesize</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- API -->
+<section id="api">
+  <div class="sh"><span class="sn">04</span><h2>REST API</h2></div>
+  <div class="endpoints">
+    <div class="ep"><span class="ep-method post">POST</span><span class="ep-path">/ingest/text</span><span class="ep-desc">Add raw text to knowledge base — returns chunk count</span></div>
+    <div class="ep"><span class="ep-method post">POST</span><span class="ep-path">/ingest/file</span><span class="ep-desc">Upload .txt, .md, or .pdf file — auto-chunked and indexed</span></div>
+    <div class="ep"><span class="ep-method post">POST</span><span class="ep-path">/query</span><span class="ep-desc">Standard RAG query — returns answer + sources + latency</span></div>
+    <div class="ep"><span class="ep-method post">POST</span><span class="ep-path">/agent/query</span><span class="ep-desc">Agentic query — includes reasoning steps, is_complex flag, all sources</span></div>
+    <div class="ep"><span class="ep-method get">GET</span><span class="ep-path">/health</span><span class="ep-desc">Service health check</span></div>
+    <div class="ep"><span class="ep-method get">GET</span><span class="ep-path">/stats</span><span class="ep-desc">Vector store stats — chunk count, embedder, model info</span></div>
+    <div class="ep"><span class="ep-method del">DELETE</span><span class="ep-path">/knowledge</span><span class="ep-desc">Clear all documents from knowledge base</span></div>
+  </div>
+
+  <h3>Example — Agentic Query Response</h3>
+  <div class="code-block">
+    <div class="cb-bar"><div class="dot" style="background:#ff5f56"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#27c93f"></div><span class="cb-label">POST /agent/query</span></div>
+    <div class="cb-body">
+{<br>
+&nbsp;&nbsp;<span class="ca">"answer"</span>: <span class="cs">"Physical products have a 30-day return window while digital products are non-refundable after download. Physical refunds take 5-7 business days..."</span>,<br>
+&nbsp;&nbsp;<span class="ca">"query"</span>: <span class="cs">"How does the refund policy differ for digital vs physical products?"</span>,<br>
+&nbsp;&nbsp;<span class="ca">"is_complex"</span>: <span class="cn">true</span>,<br>
+&nbsp;&nbsp;<span class="ca">"reasoning_steps"</span>: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cs">"Classified as: complex"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cs">"Decomposed into 2 sub-questions"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cs">"Retrieved 3 chunks for sub-question 1 (score: 0.91)"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cs">"Retrieved 3 chunks for sub-question 2 (score: 0.88)"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cs">"Synthesized final answer from all evidence"</span><br>
+&nbsp;&nbsp;],<br>
+&nbsp;&nbsp;<span class="ca">"latency_ms"</span>: <span class="cn">842.3</span><br>
+}
+    </div>
+  </div>
+</section>
+
+<!-- SETUP -->
+<section id="setup">
+  <div class="sh"><span class="sn">05</span><h2>Setup</h2></div>
+  <div class="code-block">
+    <div class="cb-bar"><div class="dot" style="background:#ff5f56"></div><div class="dot" style="background:#ffbd2e"></div><div class="dot" style="background:#27c93f"></div><span class="cb-label">terminal</span></div>
+    <div class="cb-body">
+<span class="cc"># Clone and install</span><br>
+git clone https://github.com/sadhanageddam27/agentic-rag-knowledge-system.git<br>
+pip install -r requirements.txt<br><br>
+<span class="cc"># Configure (OpenAI or Ollama)</span><br>
+cp .env.example .env<br><br>
+<span class="cc"># Run demo</span><br>
+python demo.py<br><br>
+<span class="cc"># Or start API server</span><br>
+python api.py &nbsp;&nbsp;<span class="cc"># → http://localhost:8000/docs</span><br><br>
+<span class="cc"># Run tests (no API key needed)</span><br>
+pytest tests/ -v
+    </div>
+  </div>
+  <div class="card">
+    <p><strong style="color:var(--head)">Run fully offline with Ollama</strong> — set <code style="background:rgba(129,140,248,0.08);color:var(--violet);padding:1px 6px;border-radius:3px;font-family:var(--mono);font-size:11px">LLM_BACKEND=ollama</code> and <code style="background:rgba(129,140,248,0.08);color:var(--violet);padding:1px 6px;border-radius:3px;font-family:var(--mono);font-size:11px">LLM_MODEL=llama3</code>. Local embeddings via sentence-transformers are used by default — no API key needed for either component.</p>
+  </div>
+</section>
+
+</main>
+<footer>
+  Sadhana Geddam &nbsp;·&nbsp; Agentic RAG Knowledge System &nbsp;·&nbsp; Python · ChromaDB · FastAPI &nbsp;·&nbsp;
+  <a href="https://github.com/sadhanageddam27/agentic-rag-knowledge-system">github.com/sadhanageddam27</a>
+</footer>
+</body>
+</html>
